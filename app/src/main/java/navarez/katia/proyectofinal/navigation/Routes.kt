@@ -9,16 +9,16 @@ object Login
 object Registro
 
 @Serializable
-object ListaLibros
+data class ListaLibros(val usuarioId: Int)
 
 @Serializable
-object AgregarLibro
+data class AgregarLibro(val usuarioId: Int)
 
 @Serializable
-object Perfil
+data class Perfil(val usuarioId: Int)
 
 @Serializable
-object Estadisticas
+data class Estadisticas(val usuarioId: Int)
 
 @Serializable
-data class Detalle(val libroId: Int)
+data class Detalle(val libroId: Int, val usuarioId: Int)

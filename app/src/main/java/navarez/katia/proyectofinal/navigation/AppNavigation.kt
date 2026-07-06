@@ -35,8 +35,8 @@ fun AppNavigation() {
             composable<Login> {
                 LoginScreen(
                     onNavigateToRegistro = { navController.navigate(Registro) },
-                    onNavigateToHome = {
-                        navController.navigate(ListaLibros) {
+                    onNavigateToHome = { usuarioId ->
+                        navController.navigate(ListaLibros(usuarioId)) {
                             popUpTo(Login) { inclusive = true }
                         }
                     }
@@ -49,12 +49,16 @@ fun AppNavigation() {
                 )
             }
 
-            composable<ListaLibros> {
+            composable<ListaLibros> { backStackEntry ->
+                val listaLibros: ListaLibros = backStackEntry.toRoute()
                 ListaLibrosScreen(
+                    usuarioId = listaLibros.usuarioId,
                     onNavigateToDetalle = { libroId ->
-                        navController.navigate(Detalle(libroId))
+                        navController.navigate(Detalle(libroId, listaLibros.usuarioId))
                     },
-                    onNavigateToAgregar = { navController.navigate(AgregarLibro) }
+                    onNavigateToAgregar = {
+                        navController.navigate(AgregarLibro(listaLibros.usuarioId))
+                    }
                 )
             }
 

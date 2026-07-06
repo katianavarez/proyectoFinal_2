@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: () -> Unit) {
+fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Unit) {
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -103,7 +103,7 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: () -> Unit) 
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = { onNavigateToHome() },
+                    onClick = { onNavigateToHome(0) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Iniciar sesión")
