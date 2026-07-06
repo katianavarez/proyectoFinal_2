@@ -44,6 +44,8 @@ fun DetalleLibroScreen(
     var fechaFin by remember { mutableStateOf(libro.fechaFin ?: "") }
     var mostrarPickerInicio by remember { mutableStateOf(false) }
     var mostrarPickerFin by remember { mutableStateOf(false) }
+    var estadoActual by remember { mutableStateOf(libro.estado) }
+    val puedeResenar = estadoActual != EstadoLibro.POR_LEER
 
     Scaffold(
         topBar = {
@@ -112,7 +114,7 @@ fun DetalleLibroScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            val (textoBadge, colorBadge) = when (libro.estado) {
+            val (textoBadge, colorBadge) = when (estadoActual) {
                 EstadoLibro.EN_CURSO -> "En curso" to Color(0xFFB3E5FC)
                 EstadoLibro.TERMINADO -> "Terminado" to Color(0xFFC8E6C9)
                 EstadoLibro.POR_LEER -> "Por leer" to Color(0xFFE0E0E0)
@@ -158,7 +160,7 @@ fun DetalleLibroScreen(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.MenuBook,
+                        Icons.AutoMirrored.Filled.MenuBook,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -174,7 +176,7 @@ fun DetalleLibroScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            if (libro.estado == EstadoLibro.EN_CURSO) {
+            if (estadoActual == EstadoLibro.EN_CURSO) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -231,7 +233,7 @@ fun DetalleLibroScreen(
                 Spacer(Modifier.height(12.dp))
             }
 
-            if (libro.estado == EstadoLibro.POR_LEER) {
+            if (estadoActual == EstadoLibro.POR_LEER) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -264,6 +266,14 @@ fun DetalleLibroScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+                    if (!puedeResenar) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Disponible cuando empieces a leer este libro",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     Text("Calificación", style = MaterialTheme.typography.labelMedium)
                     Spacer(Modifier.height(4.dp))
@@ -272,11 +282,12 @@ fun DetalleLibroScreen(
                             Icon(
                                 imageVector = if (i <= calificacion) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = "Estrella $i",
-                                tint = if (i <= calificacion) Color(0xFFFFC107)
+                                tint = if (!puedeResenar) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                else if (i <= calificacion) Color(0xFFFFC107)
                                 else MaterialTheme.colorScheme.outline,
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .clickable { calificacion = i }
+                                    .clickable(enabled = puedeResenar) { calificacion = i }
                             )
                         }
                     }
@@ -286,6 +297,7 @@ fun DetalleLibroScreen(
                     OutlinedTextField(
                         value = resena,
                         onValueChange = { resena = it },
+                        enabled = puedeResenar,
                         placeholder = { Text("Escribe tus pensamientos sobre esta lectura...") },
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth().height(120.dp)
@@ -299,12 +311,13 @@ fun DetalleLibroScreen(
                                 value = fechaInicio,
                                 onValueChange = {},
                                 readOnly = true,
+                                enabled = puedeResenar,
                                 placeholder = { Text("mm/dd/yyyy") },
                                 trailingIcon = {
                                     Icon(Icons.Default.CalendarToday, contentDescription = null,
-                                        modifier = Modifier.clickable { mostrarPickerInicio = true })
+                                        modifier = Modifier.clickable(enabled= puedeResenar) { mostrarPickerInicio = true })
                                 },
-                                modifier = Modifier.fillMaxWidth().clickable { mostrarPickerInicio = true }
+                                modifier = Modifier.fillMaxWidth().clickable(enabled= puedeResenar) { mostrarPickerInicio = true }
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
@@ -314,18 +327,20 @@ fun DetalleLibroScreen(
                                 value = fechaFin,
                                 onValueChange = {},
                                 readOnly = true,
+                                enabled = puedeResenar,
                                 placeholder = { Text("mm/dd/yyyy") },
                                 trailingIcon = {
                                     Icon(Icons.Default.CalendarToday, contentDescription = null,
-                                        modifier = Modifier.clickable { mostrarPickerFin = true })
+                                        modifier = Modifier.clickable(enabled = puedeResenar) { mostrarPickerFin = true })
                                 },
-                                modifier = Modifier.fillMaxWidth().clickable { mostrarPickerFin = true }
+                                modifier = Modifier.fillMaxWidth().clickable(enabled= puedeResenar) { mostrarPickerFin = true }
                             )
                         }
                     }
                     Spacer(Modifier.height(16.dp))
                     TextButton(
                         onClick = { },
+                        enabled = puedeResenar,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         Text("Guardar Reseña", fontWeight = FontWeight.SemiBold)
@@ -376,12 +391,12 @@ fun DetalleLibroScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 2200)
 @Composable
 fun DetalleLibroScreenPreview() {
     MaterialTheme {
         DetalleLibroScreen(
-            libroId = 1,
+            libroId = 3,
             onNavigateBack = {},
             onNavigateToListaLibros = {},
             onNavigateToEstadisticas = {},

@@ -1,6 +1,7 @@
 package navarez.katia.proyectofinal.ui.screens
 
 import androidx.compose.foundation.background
+import navarez.katia.proyectofinal.model.EstadoLibro
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import navarez.katia.proyectofinal.model.EstadoLibro
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -436,7 +436,7 @@ private fun EtiquetaCampo(texto: String) {
     Spacer(Modifier.height(4.dp))
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 2200)
 @Composable
 fun AgregarLibroScreenPreview() {
     MaterialTheme {
