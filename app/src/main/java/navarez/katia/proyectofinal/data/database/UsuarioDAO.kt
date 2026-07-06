@@ -1,0 +1,24 @@
+package navarez.katia.proyectofinal.data.database
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import navarez.katia.proyectofinal.model.Usuario
+
+@Dao
+interface UsuarioDAO {
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertUsuario(usuario: Usuario): Long
+
+    @Update
+    suspend fun updateUsuario(usuario: Usuario)
+
+    @Query("SELECT * FROM Usuarios WHERE correo = :correo AND password = :password")
+    suspend fun login(correo: String, password: String): Usuario?
+
+    @Query("SELECT * FROM Usuarios WHERE idUsuario = :usuarioId")
+    suspend fun getUsuarioById(usuarioId: Int): Usuario?
+}
