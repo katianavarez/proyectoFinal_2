@@ -88,8 +88,12 @@ fun AppNavigation() {
 
             composable<Detalle> { backStackEntry ->
                 val detalle: Detalle = backStackEntry.toRoute()
+                val libroViewModel: LibroViewModel = viewModel(
+                    factory = LibroViewModel.Factory(context)
+                )
                 DetalleLibroScreen(
                     libroId = detalle.libroId,
+                    viewModel = libroViewModel,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToListaLibros = {
                         navController.navigate(ListaLibros(detalle.usuarioId)) {
@@ -135,12 +139,35 @@ fun AppNavigation() {
 
             composable<Estadisticas> { backStackEntry ->
                 val estadisticas: Estadisticas = backStackEntry.toRoute()
-                EstadisticasScreen()
+                val libroViewModel: LibroViewModel = viewModel(
+                    factory = LibroViewModel.Factory(context)
+                )
+                EstadisticasScreen(
+                    usuarioId = estadisticas.usuarioId,
+                    viewModel = libroViewModel,
+                    onNavigateToListaLibros = {
+                        navController.navigate(ListaLibros(estadisticas.usuarioId)) {
+                            popUpTo(ListaLibros(estadisticas.usuarioId)) { inclusive = true }
+                        }
+                    },
+                    onNavigateToPerfil = { navController.navigate(Perfil(estadisticas.usuarioId)) }
+                )
             }
 
             composable<Perfil> { backStackEntry ->
                 val perfil: Perfil = backStackEntry.toRoute()
+                val usuarioViewModel: UsuarioViewModel = viewModel(
+                    factory = UsuarioViewModel.Factory(context)
+                )
                 PerfilScreen(
+                    usuarioId = perfil.usuarioId,
+                    viewModel = usuarioViewModel,
+                    onNavigateToListaLibros = {
+                        navController.navigate(ListaLibros(perfil.usuarioId)) {
+                            popUpTo(ListaLibros(perfil.usuarioId)) { inclusive = true }
+                        }
+                    },
+                    onNavigateToEstadisticas = { navController.navigate(Estadisticas(perfil.usuarioId)) },
                     onCerrarSesion = {
                         navController.navigate(Login) {
                             popUpTo(0) { inclusive = true }

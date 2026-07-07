@@ -6,21 +6,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import navarez.katia.proyectofinal.viewmodel.LibroViewModel
 
 @Composable
-fun EstadisticasScreen() {
+fun EstadisticasScreen(
+    usuarioId: Int,
+    viewModel: LibroViewModel,
+    onNavigateToListaLibros: () -> Unit,
+    onNavigateToPerfil: () -> Unit
+) {
     Box(
-        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Estadísticas",
-        )
+        Text("Estadísticas")
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EstadisticasScreenPreview() {
-        EstadisticasScreen()
 }
