@@ -25,12 +25,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import navarez.katia.proyectofinal.R
 import navarez.katia.proyectofinal.data.SampleData
 import navarez.katia.proyectofinal.model.EstadoLibro
 import navarez.katia.proyectofinal.model.Libro
 
 @Composable
-fun ListaLibrosScreen(onNavigateToDetalle: (Int) -> Unit, onNavigateToAgregar: () -> Unit) {
+fun ListaLibrosScreen(usuarioId: Int, onNavigateToDetalle: (Int) -> Unit, onNavigateToAgregar: () -> Unit) {
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var ordenarPorRating by remember { mutableStateOf(false) }
     val filtros = listOf("Todos", "Por leer", "En curso", "Terminados")
@@ -142,7 +143,7 @@ fun LibroCard(libro: Libro, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
             Image(
-                painter = painterResource(id = libro.portada),
+                painter = painterResource(id = R.drawable.el_alquimista),
                 contentDescription = "Portada de ${libro.titulo}",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -224,6 +225,7 @@ fun LibroCard(libro: Libro, onClick: () -> Unit) {
 fun ListaLibrosScreenPreview() {
     MaterialTheme {
         ListaLibrosScreen(
+            usuarioId = 0,
             onNavigateToDetalle = {},
             onNavigateToAgregar = {}
         )

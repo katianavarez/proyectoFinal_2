@@ -7,17 +7,37 @@ import navarez.katia.proyectofinal.model.Libro
 object SampleData {
     val libros = listOf(
         Libro(
-            1, "El Alquimista", "Paulo Coelho", "Ficción", "Novela",
-            192, "Un joven pastor andaluz emprende un viaje en busca de un tesoro.",
-            EstadoLibro.EN_CURSO, portada = R.drawable.el_alquimista, paginaActual = 125
+            id = 1, usuarioId = 1,
+            titulo = "El Alquimista", autor = "Paulo Coelho",
+            categoria = "Ficción", generoOTema = "Novela",
+            numPaginas = 192,
+            sinopsis = "Un joven pastor andaluz emprende un viaje en busca de un tesoro.",
+            estado = EstadoLibro.EN_CURSO, paginaActual = 125
         ),
-        Libro(2, "Cien años de soledad", "Gabriel García Márquez", "Ficción", "Realismo mágico",
-            471, "La historia de la familia Buendía a lo largo de varias generaciones.",
-            EstadoLibro.TERMINADO, rating = 5f, resena = "Una obra maestra.",
-            fechaInicio = "2023-10-01",  fechaFin = "2023-10-15", portada = R.drawable.el_alquimista, ),
-        Libro(3, "Sapiens", "Yuval Noah Harari", "No ficción", "Historia",
-            443, "Una breve historia de la humanidad.", EstadoLibro.POR_LEER, portada = R.drawable.el_alquimista, ),
-        Libro(4, "Clean Code", "Robert C. Martin", "Académico", "Ingeniería de software",
-            352, "Buenas prácticas para escribir código mantenible.", EstadoLibro.POR_LEER, portada = R.drawable.el_alquimista, )
+        Libro(
+            id = 2, usuarioId = 1,
+            titulo = "Cien años de soledad", autor = "Gabriel García Márquez",
+            categoria = "Ficción", generoOTema = "Realismo mágico",
+            numPaginas = 471,
+            sinopsis = "La historia de la familia Buendía a lo largo de varias generaciones.",
+            estado = EstadoLibro.TERMINADO, rating = 5f, resena = "Una obra maestra.",
+            fechaInicio = "2023-10-01", fechaFin = "2023-10-15"
+        ),
+        Libro(
+            id = 3, usuarioId = 1,
+            titulo = "Sapiens", autor = "Yuval Noah Harari",
+            categoria = "No ficción", generoOTema = "Historia",
+            numPaginas = 443,
+            sinopsis = "Una breve historia de la humanidad.",
+            estado = EstadoLibro.POR_LEER
+        ),
+        Libro(
+            id = 4, usuarioId = 1,
+            titulo = "Clean Code", autor = "Robert C. Martin",
+            categoria = "Académico", generoOTema = "Ingeniería de software",
+            numPaginas = 352,
+            sinopsis = "Buenas prácticas para escribir código mantenible.",
+            estado = EstadoLibro.POR_LEER
+        )
     )
 }

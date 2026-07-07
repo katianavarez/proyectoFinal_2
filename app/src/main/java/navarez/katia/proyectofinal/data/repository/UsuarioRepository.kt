@@ -26,4 +26,11 @@ class UsuarioRepository(private val usuarioDAO: UsuarioDAO) {
     suspend fun getUsuarioById(usuarioId: Int): Usuario? {
         return usuarioDAO.getUsuarioById(usuarioId)
     }
+    suspend fun resolverUsuarioIdValido(idPreferido: Int): Int {
+        usuarioDAO.getUsuarioById(idPreferido)?.let { return it.id }
+        usuarioDAO.getCualquierUsuario()?.let { return it.id }
+        return usuarioDAO.insertUsuario(
+            Usuario(nombre = "Invitado", correo = "invitado@local", password = "")
+        ).toInt()
+    }
 }

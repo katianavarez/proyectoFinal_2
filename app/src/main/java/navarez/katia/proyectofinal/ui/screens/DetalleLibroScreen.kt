@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import navarez.katia.proyectofinal.R
 import navarez.katia.proyectofinal.data.SampleData
 import navarez.katia.proyectofinal.model.EstadoLibro
 
@@ -103,7 +104,7 @@ fun DetalleLibroScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = libro.portada),
+                    painter = painterResource(id = R.drawable.el_alquimista),
                     contentDescription = "Portada de ${libro.titulo}",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier

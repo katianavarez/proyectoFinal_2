@@ -2,6 +2,7 @@ package navarez.katia.proyectofinal.ui.screens
 
 import androidx.compose.foundation.background
 import navarez.katia.proyectofinal.model.EstadoLibro
+import navarez.katia.proyectofinal.model.Libro
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -37,7 +38,9 @@ fun AgregarLibroScreen(
     onNavigateBack: () -> Unit,
     onNavigateToListaLibros: () -> Unit,
     onNavigateToEstadisticas: () -> Unit,
-    onNavigateToPerfil: () -> Unit
+    onNavigateToPerfil: () -> Unit,
+    usuarioId: Int = 0,
+    onGuardarLibro: (Libro) -> Unit = {}
 ) {
     var titulo by remember { mutableStateOf("") }
     var autor by remember { mutableStateOf("") }
@@ -370,8 +373,30 @@ fun AgregarLibroScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            val esTerminado = estadoSeleccionado == EstadoLibro.TERMINADO
+            val esEnCurso = estadoSeleccionado == EstadoLibro.EN_CURSO
+
             Button(
-                onClick = { onNavigateBack() },
+                onClick = {
+                    val nuevoLibro = Libro(
+                        usuarioId = usuarioId,
+                        titulo = titulo.trim(),
+                        autor = autor.trim(),
+                        categoria = categoria,
+                        generoOTema = generoTema.trim(),
+                        numPaginas = paginas.toIntOrNull() ?: 0,
+                        sinopsis = sinopsis.trim(),
+                        estado = estadoSeleccionado,
+                        portada = null,
+                        paginaActual = if (esEnCurso) paginaActual.toIntOrNull() ?: 0 else 0,
+                        rating = if (esTerminado) calificacion.toFloat() else 0f,
+                        resena = if (esTerminado) resena.trim() else "",
+                        fechaInicio = if (esTerminado) fechaInicio.ifBlank { null } else null,
+                        fechaFin = if (esTerminado) fechaFin.ifBlank { null } else null
+                    )
+                    onGuardarLibro(nuevoLibro)
+                },
+                enabled = titulo.isNotBlank() && autor.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Guardar libro")
