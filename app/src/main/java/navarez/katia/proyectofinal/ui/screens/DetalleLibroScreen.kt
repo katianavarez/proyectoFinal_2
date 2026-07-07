@@ -1,6 +1,5 @@
 package navarez.katia.proyectofinal.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,34 +17,56 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import navarez.katia.proyectofinal.R
-import navarez.katia.proyectofinal.data.SampleData
+import coil.compose.AsyncImage
 import navarez.katia.proyectofinal.model.EstadoLibro
+import navarez.katia.proyectofinal.viewmodel.LibroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleLibroScreen(
     libroId: Int,
+    viewModel: LibroViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToListaLibros: () -> Unit,
     onNavigateToEstadisticas: () -> Unit,
     onNavigateToPerfil: () -> Unit
 ) {
-    val libro = SampleData.libros.find { it.id == libroId }
-        ?: SampleData.libros.first()
+    val libroDetalle by viewModel.libroDetalle.collectAsState()
 
-    var paginaActual by remember { mutableStateOf(libro.paginaActual.toString()) }
-    var calificacion by remember { mutableStateOf(libro.rating.toInt()) }
-    var resena by remember { mutableStateOf(libro.resena) }
-    var fechaInicio by remember { mutableStateOf(libro.fechaInicio ?: "") }
-    var fechaFin by remember { mutableStateOf(libro.fechaFin ?: "") }
+    LaunchedEffect(libroId) {
+        viewModel.cargarLibro(libroId)
+    }
+
+    var paginaActual by remember { mutableStateOf("") }
+    var calificacion by remember { mutableStateOf(0) }
+    var resena by remember { mutableStateOf("") }
+    var fechaInicio by remember { mutableStateOf("") }
+    var fechaFin by remember { mutableStateOf("") }
     var mostrarPickerInicio by remember { mutableStateOf(false) }
     var mostrarPickerFin by remember { mutableStateOf(false) }
-    var estadoActual by remember { mutableStateOf(libro.estado) }
+    var estadoActual by remember { mutableStateOf(EstadoLibro.POR_LEER) }
+
+    LaunchedEffect(libroDetalle) {
+        libroDetalle?.let {
+            paginaActual = it.paginaActual.toString()
+            calificacion = it.rating.toInt()
+            resena = it.resena
+            fechaInicio = it.fechaInicio ?: ""
+            fechaFin = it.fechaFin ?: ""
+            estadoActual = it.estado
+        }
+    }
+
+    if (libroDetalle == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val libro = libroDetalle!!
     val puedeResenar = estadoActual != EstadoLibro.POR_LEER
 
     Scaffold(
@@ -103,14 +124,32 @@ fun DetalleLibroScreen(
                     .height(220.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.el_alquimista),
-                    contentDescription = "Portada de ${libro.titulo}",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
+                if (libro.portada != null) {
+                    AsyncImage(
+                        model = libro.portada,
+                        contentDescription = "Portada de ${libro.titulo}",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .height(200.dp)
+                            .aspectRatio(0.7f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Book,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -204,7 +243,7 @@ fun DetalleLibroScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
-                            progress = porcentaje,
+                            progress = { porcentaje },
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(12.dp))
@@ -222,7 +261,10 @@ fun DetalleLibroScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         Button(
-                            onClick = { },
+                            onClick = {
+                                viewModel.actualizarLibro(libro.copy(estado = EstadoLibro.TERMINADO))
+                                estadoActual = EstadoLibro.TERMINADO
+                            },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(Icons.Default.CheckCircle, contentDescription = null)
@@ -254,7 +296,10 @@ fun DetalleLibroScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        OutlinedButton(onClick = { }) { Text("Iniciar libro") }
+                        OutlinedButton(onClick = {
+                            viewModel.actualizarLibro(libro.copy(estado = EstadoLibro.EN_CURSO))
+                            estadoActual = EstadoLibro.EN_CURSO
+                        }) { Text("Iniciar libro") }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -316,9 +361,9 @@ fun DetalleLibroScreen(
                                 placeholder = { Text("mm/dd/yyyy") },
                                 trailingIcon = {
                                     Icon(Icons.Default.CalendarToday, contentDescription = null,
-                                        modifier = Modifier.clickable(enabled= puedeResenar) { mostrarPickerInicio = true })
+                                        modifier = Modifier.clickable(enabled = puedeResenar) { mostrarPickerInicio = true })
                                 },
-                                modifier = Modifier.fillMaxWidth().clickable(enabled= puedeResenar) { mostrarPickerInicio = true }
+                                modifier = Modifier.fillMaxWidth().clickable(enabled = puedeResenar) { mostrarPickerInicio = true }
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
@@ -334,13 +379,24 @@ fun DetalleLibroScreen(
                                     Icon(Icons.Default.CalendarToday, contentDescription = null,
                                         modifier = Modifier.clickable(enabled = puedeResenar) { mostrarPickerFin = true })
                                 },
-                                modifier = Modifier.fillMaxWidth().clickable(enabled= puedeResenar) { mostrarPickerFin = true }
+                                modifier = Modifier.fillMaxWidth().clickable(enabled = puedeResenar) { mostrarPickerFin = true }
                             )
                         }
                     }
                     Spacer(Modifier.height(16.dp))
                     TextButton(
-                        onClick = { },
+                        onClick = {
+                            viewModel.actualizarLibro(
+                                libro.copy(
+                                    paginaActual = paginaActual.toIntOrNull() ?: libro.paginaActual,
+                                    rating = calificacion.toFloat(),
+                                    resena = resena,
+                                    fechaInicio = fechaInicio.ifEmpty { null },
+                                    fechaFin = fechaFin.ifEmpty { null },
+                                    estado = estadoActual
+                                )
+                            )
+                        },
                         enabled = puedeResenar,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
@@ -389,19 +445,5 @@ fun DetalleLibroScreen(
                 TextButton(onClick = { mostrarPickerFin = false }) { Text("Cancelar") }
             }
         ) { DatePicker(state = estado) }
-    }
-}
-
-@Preview(showBackground = true, heightDp = 2200)
-@Composable
-fun DetalleLibroScreenPreview() {
-    MaterialTheme {
-        DetalleLibroScreen(
-            libroId = 3,
-            onNavigateBack = {},
-            onNavigateToListaLibros = {},
-            onNavigateToEstadisticas = {},
-            onNavigateToPerfil = {}
-        )
     }
 }
