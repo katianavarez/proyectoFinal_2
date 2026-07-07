@@ -11,24 +11,26 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import navarez.katia.proyectofinal.viewmodel.UsuarioViewModel
 
 @Composable
-fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Unit) {
+fun LoginScreen(
+    viewModel: UsuarioViewModel,
+    onNavigateToRegistro: () -> Unit,
+    onNavigateToHome: (Int) -> Unit
+) {
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val error by viewModel.error.collectAsState()
 
     Column(
         modifier = Modifier
@@ -46,7 +48,7 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Uni
         ) {
             Icon(
                 imageVector = Icons.Default.Book,
-                contentDescription = "Logo de la app",
+                contentDescription = null,
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -71,7 +73,10 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Uni
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = correo,
-                    onValueChange = { correo = it },
+                    onValueChange = {
+                        correo = it
+                        viewModel.limpiarError()
+                    },
                     placeholder = { Text("nombre@ejemplo.com") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     singleLine = true,
@@ -84,14 +89,17 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Uni
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        viewModel.limpiarError()
+                    },
                     placeholder = { Text("**********") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     trailingIcon = {
                         val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                         Icon(
                             imageVector = icon,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                            contentDescription = null,
                             modifier = Modifier.clickable { passwordVisible = !passwordVisible }
                         )
                     },
@@ -100,10 +108,23 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Uni
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                if (error != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = { onNavigateToHome(0) },
+                    onClick = {
+                        viewModel.login(correo, password) { id ->
+                            onNavigateToHome(id)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Iniciar sesión")
@@ -124,12 +145,3 @@ fun LoginScreen(onNavigateToRegistro: () -> Unit, onNavigateToHome: (Int) -> Uni
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MaterialTheme {
-        LoginScreen(onNavigateToRegistro = {}, onNavigateToHome = {})
-    }
-}
-
