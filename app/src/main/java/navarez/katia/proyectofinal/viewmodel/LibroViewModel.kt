@@ -6,15 +6,38 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import navarez.katia.proyectofinal.data.database.AppDatabase
 import navarez.katia.proyectofinal.data.repository.LibroRepository
 import navarez.katia.proyectofinal.data.repository.UsuarioRepository
 import navarez.katia.proyectofinal.model.Libro
+
 class LibroViewModel(
     private val libroRepository: LibroRepository,
     private val usuarioRepository: UsuarioRepository
 ) : ViewModel() {
+
+    private val _libros = MutableStateFlow<List<Libro>>(emptyList())
+    val libros: StateFlow<List<Libro>> = _libros
+
+    private val _libroDetalle = MutableStateFlow<Libro?>(null)
+    val libroDetalle: StateFlow<Libro?> = _libroDetalle
+
+    fun cargarLibros(usuarioId: Int) {
+        viewModelScope.launch {
+            libroRepository.getLibrosByUsuario(usuarioId).collect {
+                _libros.value = it
+            }
+        }
+    }
+
+    fun cargarLibro(libroId: Int) {
+        viewModelScope.launch {
+            _libroDetalle.value = libroRepository.getLibroById(libroId)
+        }
+    }
 
     fun guardarLibro(
         usuarioId: Int,
@@ -28,6 +51,21 @@ class LibroViewModel(
                 Unit
             }
             onResultado(resultado)
+        }
+    }
+
+    fun actualizarLibro(libro: Libro, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            libroRepository.updateLibro(libro)
+            _libroDetalle.value = libro
+            onSuccess()
+        }
+    }
+
+    fun eliminarLibro(libro: Libro, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            libroRepository.deleteLibro(libro)
+            onSuccess()
         }
     }
 
