@@ -19,14 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Locale
+import navarez.katia.proyectofinal.viewmodel.UsuarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistroScreen(onNavigateToLogin: () -> Unit) {
+fun RegistroScreen(
+    viewModel: UsuarioViewModel,
+    onNavigateToLogin: () -> Unit
+) {
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var fechaNacimiento by remember { mutableStateOf("") }
@@ -37,6 +40,8 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
     var passwordVisible by remember { mutableStateOf(false) }
     var mostrarDatePicker by remember { mutableStateOf(false) }
     var generoExpandido by remember { mutableStateOf(false) }
+
+    val error by viewModel.error.collectAsState()
 
     Column(
         modifier = Modifier
@@ -78,7 +83,10 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
                 Text(text = "Nombre completo")
                 OutlinedTextField(
                     value = nombre,
-                    onValueChange = { nombre = it },
+                    onValueChange = {
+                        nombre = it
+                        viewModel.limpiarError()
+                    },
                     placeholder = { Text("Ej. Julia Cortázar") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -88,7 +96,10 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
                 Text(text = "Correo electrónico")
                 OutlinedTextField(
                     value = correo,
-                    onValueChange = { correo = it },
+                    onValueChange = {
+                        correo = it
+                        viewModel.limpiarError()
+                    },
                     placeholder = { Text("nombre@ejemplo.com") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -156,7 +167,10 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
                 Text(text = "Contraseña")
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        viewModel.limpiarError()
+                    },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val icono = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -174,15 +188,38 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
                 Text(text = "Confirmar contraseña")
                 OutlinedTextField(
                     value = confirmarContrasena,
-                    onValueChange = { confirmarContrasena = it },
+                    onValueChange = {
+                        confirmarContrasena = it
+                        viewModel.limpiarError()
+                    },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                if (error != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
-                    onClick = { onNavigateToLogin() },
+                    onClick = {
+                        viewModel.registrar(
+                            nombre = nombre,
+                            correo = correo,
+                            password = password,
+                            confirmar = confirmarContrasena,
+                            fechaNacimiento = fechaNacimiento,
+                            genero = genero,
+                            profesion = profesion,
+                            onSuccess = { onNavigateToLogin() }
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Crear cuenta")
@@ -223,15 +260,5 @@ fun RegistroScreen(onNavigateToLogin: () -> Unit) {
         ) {
             DatePicker(state = datePickerState)
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegistroScreenPreview() {
-    MaterialTheme {
-        RegistroScreen(
-            onNavigateToLogin = {}
-        )
     }
 }

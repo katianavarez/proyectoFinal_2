@@ -1,6 +1,5 @@
 package navarez.katia.proyectofinal.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -11,7 +10,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -22,25 +24,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import navarez.katia.proyectofinal.R
-import navarez.katia.proyectofinal.data.SampleData
+import coil.compose.AsyncImage
 import navarez.katia.proyectofinal.model.EstadoLibro
 import navarez.katia.proyectofinal.model.Libro
+import navarez.katia.proyectofinal.viewmodel.LibroViewModel
 
 @Composable
-fun ListaLibrosScreen(usuarioId: Int, onNavigateToDetalle: (Int) -> Unit, onNavigateToAgregar: () -> Unit) {
+fun ListaLibrosScreen(
+    usuarioId: Int,
+    viewModel: LibroViewModel,
+    onNavigateToDetalle: (Int) -> Unit,
+    onNavigateToAgregar: () -> Unit,
+    onNavigateToEstadisticas: () -> Unit,
+    onNavigateToPerfil: () -> Unit
+) {
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var ordenarPorRating by remember { mutableStateOf(false) }
     val filtros = listOf("Todos", "Por leer", "En curso", "Terminados")
 
+    val libros by viewModel.libros.collectAsState()
+
+    LaunchedEffect(usuarioId) {
+        viewModel.cargarLibros(usuarioId)
+    }
+
     val librosFiltrados = when (filtroSeleccionado) {
-        "Por leer" -> SampleData.libros.filter { it.estado == EstadoLibro.POR_LEER }
-        "En curso" -> SampleData.libros.filter { it.estado == EstadoLibro.EN_CURSO }
-        "Terminados" -> SampleData.libros.filter { it.estado == EstadoLibro.TERMINADO }
-        else -> SampleData.libros
+        "Por leer" -> libros.filter { it.estado == EstadoLibro.POR_LEER }
+        "En curso" -> libros.filter { it.estado == EstadoLibro.EN_CURSO }
+        "Terminados" -> libros.filter { it.estado == EstadoLibro.TERMINADO }
+        else -> libros
     }
 
     val librosOrdenados = if (ordenarPorRating) {
@@ -49,9 +62,40 @@ fun ListaLibrosScreen(usuarioId: Int, onNavigateToDetalle: (Int) -> Unit, onNavi
         librosFiltrados
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {},
+                    icon = { Icon(Icons.Default.MenuBook, contentDescription = null) },
+                    label = { Text("Mis libros") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { onNavigateToEstadisticas() },
+                    icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
+                    label = { Text("Estadísticas") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { onNavigateToPerfil() },
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    label = { Text("Perfil") }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { onNavigateToAgregar() }) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar libro")
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -110,26 +154,44 @@ fun ListaLibrosScreen(usuarioId: Int, onNavigateToDetalle: (Int) -> Unit, onNavi
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                LazyColumn {
-                    items(librosOrdenados) { libro ->
-                        LibroCard(
-                            libro = libro,
-                            onClick = { onNavigateToDetalle(libro.id) }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
+                if (libros.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(top = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Book,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                "Aún no tienes libros",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                "Toca + para agregar tu primer libro",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                } else {
+                    LazyColumn {
+                        items(librosOrdenados) { libro ->
+                            LibroCard(
+                                libro = libro,
+                                onClick = { onNavigateToDetalle(libro.id) }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                        item { Spacer(modifier = Modifier.height(16.dp)) }
+                    }
                 }
             }
-        }
-
-        FloatingActionButton(
-            onClick = { onNavigateToAgregar() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp)
-        ) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar libro")
         }
     }
 }
@@ -142,14 +204,30 @@ fun LibroCard(libro: Libro, onClick: () -> Unit) {
             .clickable { onClick() }
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
-            Image(
-                painter = painterResource(id = R.drawable.el_alquimista),
-                contentDescription = "Portada de ${libro.titulo}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(width = 64.dp, height = 90.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
+            if (libro.portada != null) {
+                AsyncImage(
+                    model = libro.portada,
+                    contentDescription = "Portada de ${libro.titulo}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(width = 64.dp, height = 90.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(width = 64.dp, height = 90.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Book,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -197,7 +275,7 @@ fun LibroCard(libro: Libro, onClick: () -> Unit) {
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         LinearProgressIndicator(
-                            progress = porcentaje,
+                            progress = { porcentaje },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -212,22 +290,9 @@ fun LibroCard(libro: Libro, onClick: () -> Unit) {
                             }
                         }
                     }
-                    EstadoLibro.POR_LEER -> {
-                    }
+                    EstadoLibro.POR_LEER -> {}
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ListaLibrosScreenPreview() {
-    MaterialTheme {
-        ListaLibrosScreen(
-            usuarioId = 0,
-            onNavigateToDetalle = {},
-            onNavigateToAgregar = {}
-        )
     }
 }
