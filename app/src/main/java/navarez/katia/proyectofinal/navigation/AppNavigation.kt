@@ -1,5 +1,6 @@
 package navarez.katia.proyectofinal.navigation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -7,7 +8,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,10 +21,12 @@ import navarez.katia.proyectofinal.ui.screens.LoginScreen
 import navarez.katia.proyectofinal.ui.screens.PerfilScreen
 import navarez.katia.proyectofinal.ui.screens.RegistroScreen
 import navarez.katia.proyectofinal.viewmodel.LibroViewModel
+import navarez.katia.proyectofinal.viewmodel.UsuarioViewModel
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = Modifier
@@ -37,7 +39,11 @@ fun AppNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<Login> {
+                val usuarioViewModel: UsuarioViewModel = viewModel(
+                    factory = UsuarioViewModel.Factory(context)
+                )
                 LoginScreen(
+                    viewModel = usuarioViewModel,
                     onNavigateToRegistro = { navController.navigate(Registro) },
                     onNavigateToHome = { usuarioId ->
                         navController.navigate(ListaLibros(usuarioId)) {
@@ -48,20 +54,34 @@ fun AppNavigation() {
             }
 
             composable<Registro> {
+                val usuarioViewModel: UsuarioViewModel = viewModel(
+                    factory = UsuarioViewModel.Factory(context)
+                )
                 RegistroScreen(
+                    viewModel = usuarioViewModel,
                     onNavigateToLogin = { navController.popBackStack() }
                 )
             }
 
             composable<ListaLibros> { backStackEntry ->
                 val listaLibros: ListaLibros = backStackEntry.toRoute()
+                val libroViewModel: LibroViewModel = viewModel(
+                    factory = LibroViewModel.Factory(context)
+                )
                 ListaLibrosScreen(
                     usuarioId = listaLibros.usuarioId,
+                    viewModel = libroViewModel,
                     onNavigateToDetalle = { libroId ->
                         navController.navigate(Detalle(libroId, listaLibros.usuarioId))
                     },
                     onNavigateToAgregar = {
                         navController.navigate(AgregarLibro(listaLibros.usuarioId))
+                    },
+                    onNavigateToEstadisticas = {
+                        navController.navigate(Estadisticas(listaLibros.usuarioId))
+                    },
+                    onNavigateToPerfil = {
+                        navController.navigate(Perfil(listaLibros.usuarioId))
                     }
                 )
             }
@@ -83,7 +103,6 @@ fun AppNavigation() {
 
             composable<AgregarLibro> { backStackEntry ->
                 val agregar: AgregarLibro = backStackEntry.toRoute()
-                val context = LocalContext.current
                 val libroViewModel: LibroViewModel = viewModel(
                     factory = LibroViewModel.Factory(context)
                 )
@@ -107,18 +126,15 @@ fun AppNavigation() {
                                     }
                                 }
                                 .onFailure {
-                                    Toast.makeText(
-                                        context,
-                                        "No se pudo guardar: ${it.message}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                    Toast.makeText(context, "No se pudo guardar: ${it.message}", Toast.LENGTH_LONG).show()
                                 }
                         }
                     }
                 )
             }
 
-            composable<Estadisticas> {
+            composable<Estadisticas> { backStackEntry ->
+                val estadisticas: Estadisticas = backStackEntry.toRoute()
                 EstadisticasScreen()
             }
 
@@ -127,7 +143,7 @@ fun AppNavigation() {
                 PerfilScreen(
                     onCerrarSesion = {
                         navController.navigate(Login) {
-                            popUpTo(ListaLibros(perfil.usuarioId)) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )
@@ -135,26 +151,3 @@ fun AppNavigation() {
         }
     }
 }
-
-
-/**
-@Composable
-fun AppNavigation() {
-val navController = rememberNavController()
-
-NavHost(navController = navController, startDestination = Screen.Login.route,
-modifier = Modifier.statusBarsPadding()) {
-
-composable(Screen.Perfil.route) {
-PerfilScreen(navController)
-}
-composable(Screen.AgregarLibro.route) {
-AgregarLibroScreen(navController)
-}
-
-composable(Screen.Detalle.route) { backStackEntry ->
-val libroId = backStackEntry.arguments?.getInt("libroId") ?: return@composable
-DetalleLibroScreen(navController, libroId)
-}
-}
-} **/
