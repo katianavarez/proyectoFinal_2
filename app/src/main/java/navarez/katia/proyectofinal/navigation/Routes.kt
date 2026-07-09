@@ -22,3 +22,6 @@ data class Estadisticas(val usuarioId: Int)
 
 @Serializable
 data class Detalle(val libroId: Int, val usuarioId: Int)
+
+@Serializable
+object Splash

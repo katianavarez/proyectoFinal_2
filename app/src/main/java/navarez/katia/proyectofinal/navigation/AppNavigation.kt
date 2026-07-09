@@ -1,11 +1,15 @@
 package navarez.katia.proyectofinal.navigation
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,9 +39,34 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Login,
+            startDestination = Splash,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable<Splash> {
+                val usuarioViewModel: UsuarioViewModel = viewModel(
+                    factory = UsuarioViewModel.Factory(context)
+                )
+                LaunchedEffect(Unit) {
+                    usuarioViewModel.resolverSesionActiva { usuarioId ->
+                        if (usuarioId != null) {
+                            navController.navigate(ListaLibros(usuarioId)) {
+                                popUpTo(Splash) { inclusive = true }
+                            }
+                        } else {
+                            navController.navigate(Login) {
+                                popUpTo(Splash) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
             composable<Login> {
                 val usuarioViewModel: UsuarioViewModel = viewModel(
                     factory = UsuarioViewModel.Factory(context)
@@ -169,6 +198,7 @@ fun AppNavigation() {
                     },
                     onNavigateToEstadisticas = { navController.navigate(Estadisticas(perfil.usuarioId)) },
                     onCerrarSesion = {
+                        usuarioViewModel.cerrarSesion()
                         navController.navigate(Login) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -177,4 +207,6 @@ fun AppNavigation() {
             }
         }
     }
+
 }
+

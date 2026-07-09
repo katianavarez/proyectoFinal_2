@@ -123,6 +123,23 @@ class UsuarioViewModel(
         else -> e.message ?: "Error de autenticación"
     }
 
+    fun resolverSesionActiva(onResult: (Int?) -> Unit) {
+        val fbUser = authRepository.usuarioActual
+        if (fbUser == null) {
+            onResult(null)
+            return
+        }
+        viewModelScope.launch {
+            val perfil = repository.obtenerOCrearPerfil(
+                uid = fbUser.uid,
+                correo = fbUser.email ?: "",
+                nombre = fbUser.displayName ?: (fbUser.email?.substringBefore("@") ?: "Usuario")
+            )
+            _usuarioActual.value = perfil
+            onResult(perfil.id)
+        }
+    }
+
     companion object {
         fun Factory(context: Context): ViewModelProvider.Factory = viewModelFactory {
             initializer {
