@@ -7,21 +7,25 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "Usuarios",
-    indices = [Index(value = ["correo"], unique = true)]
+    indices = [
+        Index(value = ["uid"], unique = true),
+        Index(value = ["correo"], unique = true)
+    ]
 )
 data class Usuario(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "idUsuario")
     val id: Int = 0,
 
+    // uid de Firebase Auth: enlaza el perfil local con la identidad remota
+    @ColumnInfo(name = "uid")
+    val uid: String,
+
     @ColumnInfo(name = "nombre")
     val nombre: String,
 
     @ColumnInfo(name = "correo")
     val correo: String,
-
-    @ColumnInfo(name = "password")
-    val password: String,
 
     @ColumnInfo(name = "fechaNacimiento")
     val fechaNacimiento: String? = null,

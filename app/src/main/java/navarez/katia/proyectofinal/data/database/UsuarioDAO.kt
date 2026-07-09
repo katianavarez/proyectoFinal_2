@@ -16,8 +16,8 @@ interface UsuarioDAO {
     @Update
     suspend fun updateUsuario(usuario: Usuario)
 
-    @Query("SELECT * FROM Usuarios WHERE correo = :correo AND password = :password")
-    suspend fun login(correo: String, password: String): Usuario?
+    @Query("SELECT * FROM Usuarios WHERE uid = :uid")
+    suspend fun getUsuarioByUid(uid: String): Usuario?
 
     @Query("SELECT * FROM Usuarios WHERE idUsuario = :usuarioId")
     suspend fun getUsuarioById(usuarioId: Int): Usuario?

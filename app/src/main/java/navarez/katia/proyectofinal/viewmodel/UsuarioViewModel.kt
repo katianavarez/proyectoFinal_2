@@ -10,10 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import navarez.katia.proyectofinal.data.database.AppDatabase
+import navarez.katia.proyectofinal.data.repository.FirebaseAuthRepository
 import navarez.katia.proyectofinal.data.repository.UsuarioRepository
 import navarez.katia.proyectofinal.model.Usuario
 
-class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
+class UsuarioViewModel(
+    private val repository: UsuarioRepository,
+    private val authRepository: FirebaseAuthRepository = FirebaseAuthRepository()
+) : ViewModel() {
 
     private val _usuarioActual = MutableStateFlow<Usuario?>(null)
     val usuarioActual: StateFlow<Usuario?> = _usuarioActual
@@ -21,15 +25,24 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _cargando = MutableStateFlow(false)
+    val cargando: StateFlow<Boolean> = _cargando
+
     fun login(correo: String, password: String, onSuccess: (Int) -> Unit) {
         viewModelScope.launch {
-            val usuario = repository.login(correo, password)
-            if (usuario != null) {
-                _usuarioActual.value = usuario
-                onSuccess(usuario.id)
-            } else {
-                _error.value = "Correo o contraseña incorrectos"
-            }
+            _cargando.value = true
+            authRepository.login(correo.trim(), password)
+                .onSuccess { fbUser ->
+                    val perfil = repository.obtenerOCrearPerfil(
+                        uid = fbUser.uid,
+                        correo = fbUser.email ?: correo.trim(),
+                        nombre = fbUser.displayName ?: correo.substringBefore("@")
+                    )
+                    _usuarioActual.value = perfil
+                    onSuccess(perfil.id)
+                }
+                .onFailure { _error.value = traducirError(it) }
+            _cargando.value = false
         }
     }
 
@@ -48,17 +61,26 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
                 _error.value = "Las contraseñas no coinciden"
                 return@launch
             }
-            val usuario = Usuario(
-                nombre = nombre,
-                correo = correo,
-                password = password,
-                fechaNacimiento = fechaNacimiento.ifEmpty { null },
-                genero = genero.ifEmpty { null },
-                profesion = profesion.ifEmpty { null }
-            )
-            val result = repository.registrar(usuario)
-            result.onSuccess { onSuccess() }
-            result.onFailure { _error.value = it.message }
+            _cargando.value = true
+            authRepository.registrar(correo.trim(), password)
+                .onSuccess { fbUser ->
+                    val perfil = repository.obtenerOCrearPerfil(
+                        uid = fbUser.uid,
+                        correo = fbUser.email ?: correo.trim(),
+                        nombre = nombre
+                    )
+                    val completo = perfil.copy(
+                        nombre = nombre,
+                        fechaNacimiento = fechaNacimiento.ifEmpty { null },
+                        genero = genero.ifEmpty { null },
+                        profesion = profesion.ifEmpty { null }
+                    )
+                    repository.actualizarPerfil(completo)
+                    _usuarioActual.value = completo
+                    onSuccess()
+                }
+                .onFailure { _error.value = traducirError(it) }
+            _cargando.value = false
         }
     }
 
@@ -76,8 +98,29 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
         }
     }
 
+    fun cerrarSesion() {
+        authRepository.cerrarSesion()
+        _usuarioActual.value = null
+    }
+
     fun limpiarError() {
         _error.value = null
+    }
+
+    private fun traducirError(e: Throwable): String = when {
+        e.message?.contains("least 6 characters", true) == true ->
+            "La contraseña debe tener al menos 6 caracteres"
+        e.message?.contains("email address is already", true) == true ->
+            "Ya existe una cuenta con ese correo"
+        e.message?.contains("badly formatted", true) == true ->
+            "El correo no tiene un formato válido"
+        e.message?.contains("no user record", true) == true ||
+                e.message?.contains("password is invalid", true) == true ||
+                e.message?.contains("credential is incorrect", true) == true ->
+            "Correo o contraseña incorrectos"
+        e.message?.contains("network", true) == true ->
+            "Sin conexión. Revisa tu internet."
+        else -> e.message ?: "Error de autenticación"
     }
 
     companion object {

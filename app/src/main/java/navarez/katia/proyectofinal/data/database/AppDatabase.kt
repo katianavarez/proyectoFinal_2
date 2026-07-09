@@ -10,7 +10,7 @@ import navarez.katia.proyectofinal.model.Usuario
 
 @Database(
     entities = [Usuario::class, Libro::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

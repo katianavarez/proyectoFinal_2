@@ -1,36 +1,26 @@
 package navarez.katia.proyectofinal.data.repository
 
-import android.database.sqlite.SQLiteConstraintException
 import navarez.katia.proyectofinal.data.database.UsuarioDAO
 import navarez.katia.proyectofinal.model.Usuario
 
 class UsuarioRepository(private val usuarioDAO: UsuarioDAO) {
 
-    suspend fun registrar(usuario: Usuario): Result<Long> {
-        return try {
-            val id = usuarioDAO.insertUsuario(usuario)
-            Result.success(id)
-        } catch (e: SQLiteConstraintException) {
-            Result.failure(Exception("Ya existe una cuenta con ese correo"))
-        }
+    suspend fun obtenerOCrearPerfil(uid: String, correo: String, nombre: String): Usuario {
+        usuarioDAO.getUsuarioByUid(uid)?.let { return it }
+        val nuevo = Usuario(uid = uid, nombre = nombre, correo = correo)
+        val idLocal = usuarioDAO.insertUsuario(nuevo).toInt()
+        return nuevo.copy(id = idLocal)
     }
 
-    suspend fun login(correo: String, password: String): Usuario? {
-        return usuarioDAO.login(correo, password)
-    }
+    suspend fun getUsuarioByUid(uid: String): Usuario? = usuarioDAO.getUsuarioByUid(uid)
 
-    suspend fun actualizarPerfil(usuario: Usuario) {
-        usuarioDAO.updateUsuario(usuario)
-    }
+    suspend fun getUsuarioById(usuarioId: Int): Usuario? = usuarioDAO.getUsuarioById(usuarioId)
 
-    suspend fun getUsuarioById(usuarioId: Int): Usuario? {
-        return usuarioDAO.getUsuarioById(usuarioId)
-    }
+    suspend fun actualizarPerfil(usuario: Usuario) = usuarioDAO.updateUsuario(usuario)
+
     suspend fun resolverUsuarioIdValido(idPreferido: Int): Int {
         usuarioDAO.getUsuarioById(idPreferido)?.let { return it.id }
         usuarioDAO.getCualquierUsuario()?.let { return it.id }
-        return usuarioDAO.insertUsuario(
-            Usuario(nombre = "Invitado", correo = "invitado@local", password = "")
-        ).toInt()
+        return idPreferido
     }
 }
