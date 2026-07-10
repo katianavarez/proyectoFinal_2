@@ -1,5 +1,8 @@
 package navarez.katia.proyectofinal.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import navarez.katia.proyectofinal.model.EstadoLibro
 import navarez.katia.proyectofinal.model.Libro
@@ -17,7 +20,6 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
@@ -25,10 +27,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -40,33 +44,50 @@ fun AgregarLibroScreen(
     onNavigateToEstadisticas: () -> Unit,
     onNavigateToPerfil: () -> Unit,
     usuarioId: Int = 0,
+    libroExistente: Libro? = null,
     onGuardarLibro: (Libro) -> Unit = {}
 ) {
-    var titulo by remember { mutableStateOf("") }
-    var autor by remember { mutableStateOf("") }
+    val esEdicion = libroExistente != null
+
+    var titulo by remember(libroExistente) { mutableStateOf(libroExistente?.titulo ?: "") }
+    var autor by remember(libroExistente) { mutableStateOf(libroExistente?.autor ?: "") }
     var isbn by remember { mutableStateOf("") }
-    var paginas by remember { mutableStateOf("") }
+    var paginas by remember(libroExistente) { mutableStateOf(libroExistente?.numPaginas?.takeIf { it > 0 }?.toString() ?: "") }
 
-    var categoria by remember { mutableStateOf("Ficción") }
+    var categoria by remember(libroExistente) { mutableStateOf(libroExistente?.categoria ?: "Ficción") }
     var categoriaExpandida by remember { mutableStateOf(false) }
-    var generoTema by remember { mutableStateOf("") }
-    var sinopsis by remember { mutableStateOf("") }
+    var generoTema by remember(libroExistente) { mutableStateOf(libroExistente?.generoOTema ?: "") }
+    var sinopsis by remember(libroExistente) { mutableStateOf(libroExistente?.sinopsis ?: "") }
 
-    var estadoSeleccionado by remember { mutableStateOf(EstadoLibro.POR_LEER) }
+    var estadoSeleccionado by remember(libroExistente) { mutableStateOf(libroExistente?.estado ?: EstadoLibro.POR_LEER) }
 
-    var paginaActual by remember { mutableStateOf("") }
+    var paginaActual by remember(libroExistente) { mutableStateOf(libroExistente?.paginaActual?.takeIf { it > 0 }?.toString() ?: "") }
 
-    var calificacion by remember { mutableStateOf(0) }
-    var fechaInicio by remember { mutableStateOf("") }
-    var fechaFin by remember { mutableStateOf("") }
-    var resena by remember { mutableStateOf("") }
+    var calificacion by remember(libroExistente) { mutableStateOf(libroExistente?.rating?.toInt() ?: 0) }
+    var fechaInicio by remember(libroExistente) { mutableStateOf(libroExistente?.fechaInicio ?: "") }
+    var fechaFin by remember(libroExistente) { mutableStateOf(libroExistente?.fechaFin ?: "") }
+    var resena by remember(libroExistente) { mutableStateOf(libroExistente?.resena ?: "") }
     var mostrarPickerInicio by remember { mutableStateOf(false) }
     var mostrarPickerFin by remember { mutableStateOf(false) }
+
+    var portadaUri by remember(libroExistente) {
+        mutableStateOf(libroExistente?.portada?.let { Uri.parse(it) })
+    }
+    val selectorImagen = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { portadaUri = it }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Agregar Libro", style = MaterialTheme.typography.titleMedium) },
+                title = {
+                    Text(
+                        if (esEdicion) "Editar Libro" else "Agregar Libro",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -116,23 +137,34 @@ fun AgregarLibroScreen(
                     .height(150.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                    .clickable { },
+                    .clickable { selectorImagen.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.AddPhotoAlternate,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                if (portadaUri != null) {
+                    AsyncImage(
+                        model = portadaUri,
+                        contentDescription = "Portada seleccionada",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp))
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text("Subir portada del libro", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "JPG, PNG HASTA 5MB",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.AddPhotoAlternate,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text("Subir portada del libro", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "JPG, PNG HASTA 5MB",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -378,7 +410,8 @@ fun AgregarLibroScreen(
 
             Button(
                 onClick = {
-                    val nuevoLibro = Libro(
+                    val libro = Libro(
+                        id = libroExistente?.id ?: 0,
                         usuarioId = usuarioId,
                         titulo = titulo.trim(),
                         autor = autor.trim(),
@@ -387,19 +420,19 @@ fun AgregarLibroScreen(
                         numPaginas = paginas.toIntOrNull() ?: 0,
                         sinopsis = sinopsis.trim(),
                         estado = estadoSeleccionado,
-                        portada = null,
+                        portada = portadaUri?.toString(),
                         paginaActual = if (esEnCurso) paginaActual.toIntOrNull() ?: 0 else 0,
                         rating = if (esTerminado) calificacion.toFloat() else 0f,
                         resena = if (esTerminado) resena.trim() else "",
                         fechaInicio = if (esTerminado) fechaInicio.ifBlank { null } else null,
                         fechaFin = if (esTerminado) fechaFin.ifBlank { null } else null
                     )
-                    onGuardarLibro(nuevoLibro)
+                    onGuardarLibro(libro)
                 },
                 enabled = titulo.isNotBlank() && autor.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Guardar libro")
+                Text(if (esEdicion) "Guardar cambios" else "Guardar libro")
             }
 
             Spacer(Modifier.height(8.dp))

@@ -31,7 +31,8 @@ fun DetalleLibroScreen(
     onNavigateBack: () -> Unit,
     onNavigateToListaLibros: () -> Unit,
     onNavigateToEstadisticas: () -> Unit,
-    onNavigateToPerfil: () -> Unit
+    onNavigateToPerfil: () -> Unit,
+    onNavigateToEditar: () -> Unit
 ) {
     val libroDetalle by viewModel.libroDetalle.collectAsState()
 
@@ -79,7 +80,7 @@ fun DetalleLibroScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToEditar() }) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar")
                     }
                 },

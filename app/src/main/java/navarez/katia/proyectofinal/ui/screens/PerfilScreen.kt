@@ -1,5 +1,6 @@
 package navarez.katia.proyectofinal.ui.screens
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -47,6 +48,12 @@ fun PerfilScreen(
     var profesion by remember { mutableStateOf("") }
     var mostrarDatePicker by remember { mutableStateOf(false) }
     var profileImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    var mostrarDialogoPassword by remember { mutableStateOf(false) }
+    var passwordActual by remember { mutableStateOf("") }
+    var passwordNueva by remember { mutableStateOf("") }
+    var passwordConfirmar by remember { mutableStateOf("") }
+    var errorPassword by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
@@ -263,7 +270,7 @@ fun PerfilScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
-                    onClick = {},
+                    onClick = { mostrarDialogoPassword = true },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -312,6 +319,73 @@ fun PerfilScreen(
                 ) {
                     DatePicker(state = datePickerState)
                 }
+            }
+
+            if (mostrarDialogoPassword) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialogoPassword = false },
+                    title = { Text("Cambiar contraseña") },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = passwordActual,
+                                onValueChange = { passwordActual = it; errorPassword = null },
+                                label = { Text("Contraseña actual") },
+                                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = passwordNueva,
+                                onValueChange = { passwordNueva = it; errorPassword = null },
+                                label = { Text("Nueva contraseña") },
+                                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = passwordConfirmar,
+                                onValueChange = { passwordConfirmar = it; errorPassword = null },
+                                label = { Text("Confirmar nueva contraseña") },
+                                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            if (errorPassword != null) {
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    errorPassword!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            if (passwordNueva != passwordConfirmar) {
+                                errorPassword = "Las contraseñas no coinciden"
+                            } else {
+                                viewModel.cambiarPassword(passwordActual, passwordNueva) { resultado ->
+                                    resultado
+                                        .onSuccess {
+                                            Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
+                                            mostrarDialogoPassword = false
+                                            passwordActual = ""
+                                            passwordNueva = ""
+                                            passwordConfirmar = ""
+                                        }
+                                        .onFailure { errorPassword = it.message }
+                                }
+                            }
+                        }) { Text("Guardar") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { mostrarDialogoPassword = false }) { Text("Cancelar") }
+                    }
+                )
             }
         }
     }

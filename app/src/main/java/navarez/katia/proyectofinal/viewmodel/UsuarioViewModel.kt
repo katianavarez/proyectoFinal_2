@@ -103,6 +103,26 @@ class UsuarioViewModel(
         _usuarioActual.value = null
     }
 
+    fun cambiarPassword(
+        passwordActual: String,
+        passwordNueva: String,
+        onResultado: (Result<Unit>) -> Unit
+    ) {
+        if (passwordNueva.length < 6) {
+            onResultado(Result.failure(Exception("La contraseña debe tener al menos 6 caracteres")))
+            return
+        }
+        viewModelScope.launch {
+            _cargando.value = true
+            val resultado = authRepository.cambiarPassword(passwordActual, passwordNueva)
+            _cargando.value = false
+            resultado.fold(
+                onSuccess = { onResultado(Result.success(Unit)) },
+                onFailure = { onResultado(Result.failure(Exception(traducirError(it)))) }
+            )
+        }
+    }
+
     fun limpiarError() {
         _error.value = null
     }

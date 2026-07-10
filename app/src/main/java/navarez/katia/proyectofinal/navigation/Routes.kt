@@ -12,7 +12,7 @@ object Registro
 data class ListaLibros(val usuarioId: Int)
 
 @Serializable
-data class AgregarLibro(val usuarioId: Int)
+data class AgregarLibro(val usuarioId: Int, val libroId: Int? = null)
 
 @Serializable
 data class Perfil(val usuarioId: Int)

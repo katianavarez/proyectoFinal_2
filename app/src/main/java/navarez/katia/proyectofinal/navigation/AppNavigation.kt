@@ -9,6 +9,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -130,7 +132,10 @@ fun AppNavigation() {
                         }
                     },
                     onNavigateToEstadisticas = { navController.navigate(Estadisticas(detalle.usuarioId)) },
-                    onNavigateToPerfil = { navController.navigate(Perfil(detalle.usuarioId)) }
+                    onNavigateToPerfil = { navController.navigate(Perfil(detalle.usuarioId)) },
+                    onNavigateToEditar = {
+                        navController.navigate(AgregarLibro(detalle.usuarioId, detalle.libroId))
+                    }
                 )
             }
 
@@ -139,8 +144,15 @@ fun AppNavigation() {
                 val libroViewModel: LibroViewModel = viewModel(
                     factory = LibroViewModel.Factory(context)
                 )
+                val libroExistente by libroViewModel.libroDetalle.collectAsState()
+
+                LaunchedEffect(agregar.libroId) {
+                    agregar.libroId?.let { libroViewModel.cargarLibro(it) }
+                }
+
                 AgregarLibroScreen(
                     usuarioId = agregar.usuarioId,
+                    libroExistente = if (agregar.libroId != null) libroExistente else null,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToListaLibros = {
                         navController.navigate(ListaLibros(agregar.usuarioId)) {
@@ -149,18 +161,27 @@ fun AppNavigation() {
                     },
                     onNavigateToEstadisticas = { navController.navigate(Estadisticas(agregar.usuarioId)) },
                     onNavigateToPerfil = { navController.navigate(Perfil(agregar.usuarioId)) },
-                    onGuardarLibro = { nuevoLibro ->
-                        libroViewModel.guardarLibro(agregar.usuarioId, nuevoLibro) { resultado ->
-                            resultado
-                                .onSuccess {
-                                    Toast.makeText(context, "Libro guardado", Toast.LENGTH_SHORT).show()
-                                    navController.navigate(ListaLibros(agregar.usuarioId)) {
-                                        popUpTo(ListaLibros(agregar.usuarioId)) { inclusive = true }
+                    onGuardarLibro = { libro ->
+                        if (agregar.libroId != null) {
+                            libroViewModel.actualizarLibro(libro) {
+                                Toast.makeText(context, "Libro actualizado", Toast.LENGTH_SHORT).show()
+                                navController.navigate(Detalle(agregar.libroId, agregar.usuarioId)) {
+                                    popUpTo(Detalle(agregar.libroId, agregar.usuarioId)) { inclusive = true }
+                                }
+                            }
+                        } else {
+                            libroViewModel.guardarLibro(agregar.usuarioId, libro) { resultado ->
+                                resultado
+                                    .onSuccess {
+                                        Toast.makeText(context, "Libro guardado", Toast.LENGTH_SHORT).show()
+                                        navController.navigate(ListaLibros(agregar.usuarioId)) {
+                                            popUpTo(ListaLibros(agregar.usuarioId)) { inclusive = true }
+                                        }
                                     }
-                                }
-                                .onFailure {
-                                    Toast.makeText(context, "No se pudo guardar: ${it.message}", Toast.LENGTH_LONG).show()
-                                }
+                                    .onFailure {
+                                        Toast.makeText(context, "No se pudo guardar: ${it.message}", Toast.LENGTH_LONG).show()
+                                    }
+                            }
                         }
                     }
                 )
