@@ -72,7 +72,7 @@ fun DetalleLibroScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Diario de Lectura") },
+                title = { Text("Diario de Lectura", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -82,10 +82,12 @@ fun DetalleLibroScreen(
                     IconButton(onClick = { }) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar")
                     }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Search, contentDescription = "Buscar")
-                    }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
+                )
             )
         },
         bottomBar = {
@@ -220,7 +222,7 @@ fun DetalleLibroScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {

@@ -102,9 +102,17 @@ fun ListaLibrosScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(imageVector = Icons.Default.MenuBook, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.MenuBook,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Diario de Lectura", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Diario de Lectura",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.weight(1f))
 
                 val iconoEstrella = if (ordenarPorRating) Icons.Default.Star else Icons.Default.StarBorder
@@ -114,9 +122,6 @@ fun ListaLibrosScreen(
                     tint = if (ordenarPorRating) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.clickable { ordenarPorRating = !ordenarPorRating }
                 )
-
-                Spacer(modifier = Modifier.width(16.dp))
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Buscar")
             }
 
             HorizontalDivider()

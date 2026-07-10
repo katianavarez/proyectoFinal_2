@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import navarez.katia.proyectofinal.model.EstadoLibro
 import navarez.katia.proyectofinal.viewmodel.LibroViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstadisticasScreen(
     usuarioId: Int,
@@ -33,9 +34,13 @@ fun EstadisticasScreen(
     val porLeer = libros.count { it.estado == EstadoLibro.POR_LEER }
     val enCurso = libros.count { it.estado == EstadoLibro.EN_CURSO }
     val terminados = libros.count { it.estado == EstadoLibro.TERMINADO }
-    val paginasLeidas = libros
-        .filter { it.estado == EstadoLibro.TERMINADO }
-        .sumOf { it.numPaginas }
+    val paginasLeidas = libros.sumOf {
+        when (it.estado) {
+            EstadoLibro.TERMINADO -> it.numPaginas
+            EstadoLibro.EN_CURSO -> it.paginaActual
+            else -> 0
+        }
+    }
 
     val categorias = libros.groupBy { it.categoria }
         .map { it.key to it.value.size }
@@ -47,6 +52,22 @@ fun EstadisticasScreen(
         .take(5)
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.MenuBook, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Diario de Lectura", style = MaterialTheme.typography.titleMedium)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        },
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
@@ -220,7 +241,7 @@ fun EstadisticasScreen(
                             LinearProgressIndicator(
                                 progress = { progreso },
                                 modifier = Modifier.fillMaxWidth(),
-                                color = Color(0xFF9C27B0)
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(Modifier.height(12.dp))
                         }

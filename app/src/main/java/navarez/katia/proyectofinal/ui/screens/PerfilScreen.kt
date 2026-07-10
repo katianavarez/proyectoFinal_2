@@ -69,6 +69,22 @@ fun PerfilScreen(
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.MenuBook, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Diario de Lectura", style = MaterialTheme.typography.titleMedium)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        },
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(

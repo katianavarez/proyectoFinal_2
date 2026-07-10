@@ -12,32 +12,55 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = TealPrimario,
+    onPrimary = TextoSobrePrimario,
+    primaryContainer = TealPrimario,
+    onPrimaryContainer = TextoSobrePrimario,
+    secondary = TealPrimario,
+    onSecondary = TextoSobrePrimario,
+    secondaryContainer = TealPrimario,
+    onSecondaryContainer = TextoSobrePrimario,
+    tertiary = TealPrimario,
+    onTertiary = TextoSobrePrimario,
+    background = TextoPrincipal,
+    onBackground = FondoApp,
+    surface = TextoPrincipal,
+    onSurface = FondoApp,
+    surfaceVariant = TextoSecundario,
+    onSurfaceVariant = FondoApp,
+    outline = TextoSecundario,
+    error = ErrorColor
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = TealPrimario,
+    onPrimary = TextoSobrePrimario,
+    primaryContainer = ContenedorAcento,
+    onPrimaryContainer = TealPrimario,
+    secondary = TealPrimario,
+    onSecondary = TextoSobrePrimario,
+    secondaryContainer = ContenedorAcento,
+    onSecondaryContainer = TealPrimario,
+    tertiary = TealPrimario,
+    onTertiary = TextoSobrePrimario,
+    tertiaryContainer = ContenedorAcento,
+    onTertiaryContainer = TealPrimario,
+    background = FondoApp,
+    onBackground = TextoPrincipal,
+    surface = SuperficieCard,
+    onSurface = TextoPrincipal,
+    surfaceVariant = SuperficieVariante,
+    onSurfaceVariant = TextoSecundario,
+    outline = BordeNeutro,
+    error = ErrorColor,
+    onError = TextoSobrePrimario
 )
 
 @Composable
 fun ProyectoFinalTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
