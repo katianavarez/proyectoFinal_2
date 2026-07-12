@@ -29,4 +29,3 @@ Aplicación Android para registrar libros leídos, en curso o por leer, llevar e
 
 https://www.figma.com/design/3311X35p2DH8C5Aovkl2lV/Proyecto-Final---Lectura-y-Rese%C3%B1as?node-id=0-1&t=bMX1e1GmDxQPxCJ2-1
 
-<img width="3344" height="2143" alt="Proyecto Final - Lectura y Reseñas (1)" src="https://github.com/user-attachments/assets/7067420a-1906-4b1f-b268-ece082c0c942" />
